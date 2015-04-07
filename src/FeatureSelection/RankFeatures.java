@@ -26,10 +26,10 @@ public class RankFeatures {
 		BufferedReader brLabels = new BufferedReader(new FileReader(labelsFile));
 
 		// Create matrices
-		Matrix mPClass = new Matrix(150, 20000);	// matrix positive class
-		Matrix mNClass = new Matrix(150, 20000);	// matrix negative class
-		Matrix mPMean = new Matrix(1, 20000);		// Positive class mean matrix
-		Matrix mNMean = new Matrix(1, 20000);		// Negative class mean matrix
+		Matrix mPClass = new Matrix(150, 20000, 0);	// matrix positive class
+		Matrix mNClass = new Matrix(150, 20000, 0);	// matrix negative class
+		Matrix mPMean = new Matrix(1, 20000, 0);		// Positive class mean matrix
+		Matrix mNMean = new Matrix(1, 20000, 0);		// Negative class mean matrix
 
 		// Declare string tokenizers for " " & ":"
 		StringTokenizer spaceTokenizer;
@@ -39,9 +39,11 @@ public class RankFeatures {
 		String fLine;	// features file line
 		String lLine;	// labels file line
 		boolean fileNotEnded = true;
+		int lineCount = 0;
 		while(fileNotEnded) {
 			fLine = brFeatures.readLine();
 			lLine = brLabels.readLine();
+			++lineCount;
 			// If file ending reached then flag it
 			if(fLine == null && lLine == null) {
 				fileNotEnded = false;
@@ -53,11 +55,17 @@ public class RankFeatures {
 			// Check if the example is a +ve class 
 			if(Integer.parseInt(lLine.trim()) == 1) {
 				while(spaceTokenizer.hasMoreTokens()) {
+					// Tokenizing using space
 					String fToken = spaceTokenizer.nextToken();
+					// tokenize each feature and value
+					colanTokenizer = new StringTokenizer(fToken, ":");
+					// fill it in matrix
+					mPClass.set(lineCount, Integer.parseInt(colanTokenizer.nextToken()),
+							Integer.parseInt(colanTokenizer.nextToken()));
 				}
 			}
 			else {
-
+				
 			}
 		}
 	}
