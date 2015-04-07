@@ -21,7 +21,7 @@ public class RankFeatures {
 		BufferedReader brFeatures = new BufferedReader(new FileReader(featuresFile));
 
 		// Get the labels file
-		String labelsFile = "./data/dexeter_train.labels";
+		String labelsFile = "./data/dexter_train.labels";
 		// open the labels file
 		BufferedReader brLabels = new BufferedReader(new FileReader(labelsFile));
 
@@ -39,14 +39,15 @@ public class RankFeatures {
 		String fLine;	// features file line
 		String lLine;	// labels file line
 		boolean fileNotEnded = true;
-		int lineCount = 0;
+		int pEgCount = -1;	// +ve example count
+		int nEgCount = -1;	// -ve example count
 		while(fileNotEnded) {
 			fLine = brFeatures.readLine();
 			lLine = brLabels.readLine();
-			++lineCount;
 			// If file ending reached then flag it
 			if(fLine == null && lLine == null) {
 				fileNotEnded = false;
+				break;
 			}
 
 			// tokenize the line
@@ -54,20 +55,43 @@ public class RankFeatures {
 
 			// Check if the example is a +ve class 
 			if(Integer.parseInt(lLine.trim()) == 1) {
+				pEgCount++;
 				while(spaceTokenizer.hasMoreTokens()) {
 					// Tokenizing using space
 					String fToken = spaceTokenizer.nextToken();
 					// tokenize each feature and value
 					colanTokenizer = new StringTokenizer(fToken, ":");
+					// feature & value
+					int featureNo = Integer.parseInt(colanTokenizer.nextToken())-1;	// feature value range from 0 to 19999 in array
+					int featureValue = Integer.parseInt(colanTokenizer.nextToken());
 					// fill it in matrix
-					mPClass.set(lineCount, Integer.parseInt(colanTokenizer.nextToken()),
-							Integer.parseInt(colanTokenizer.nextToken()));
+					mPClass.set(pEgCount, featureNo, featureValue);
+					// sum the values in the mean matrix
+					mPMean.set(0, featureNo, mPMean.get(0, featureNo)+featureValue);
+				}
+			}
+			else if(Integer.parseInt(lLine.trim()) == -1){
+				nEgCount++;
+				while(spaceTokenizer.hasMoreTokens()) {
+					// Tokenizing using space
+					String fToken = spaceTokenizer.nextToken();
+					// tokenize each feature and value
+					colanTokenizer = new StringTokenizer(fToken, ":");
+					// feature & value
+					int featureNo = Integer.parseInt(colanTokenizer.nextToken())-1;	// feature value range from 0 to 19999 in array
+					int featureValue = Integer.parseInt(colanTokenizer.nextToken());
+					// fill it in matrix
+					mNClass.set(nEgCount, featureNo, featureValue);
+					// sum the values in the mean matrix
+					mNMean.set(0, featureNo, mNMean.get(0, featureNo)+featureValue);
 				}
 			}
 			else {
-				
+				System.out.println("Invalid Labels! @ LineCount (+/- 2 lines): " + (pEgCount+nEgCount+2));
+				System.exit(0);
 			}
 		}
+		System.out.println("Done!");
+		mPClass.print(10, 1);
 	}
-
 }
