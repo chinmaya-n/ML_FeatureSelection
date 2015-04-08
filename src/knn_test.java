@@ -28,9 +28,9 @@ public class knn_test {
  
 		//do not use first and second
 		Instance first = data.instance(0);
-		Instance second = data.instance(1);
+		Instance second = data.instance(4);
 		data.delete(0);
-		data.delete(1);
+		data.delete(4);
  
 		Classifier ibk = new IBk();		
 		ibk.buildClassifier(data);

@@ -96,8 +96,8 @@ public class RankFeatures {
 		System.out.println("Done!");
 
 		// Divide the sum of values with no of examples to get the mean
-		mPMean.times(pEgCount+1);
-		mNMean.times(nEgCount+1);
+		mPMean.times(1/(pEgCount+1));
+		mNMean.times(1/(nEgCount+1));
 
 		// Create the standard deviation matrices
 		Matrix mPStandardDeviation = new Matrix(1, mPMean.getColumnDimension(), 0);
@@ -299,8 +299,8 @@ public class RankFeatures {
 		}
 
 		// -- Debug
-//		System.out.println(rankedList);
-//		System.out.println(rankedListValues);
+		System.out.println(rankedList);
+		System.out.println(rankedListValues);
 
 		// return ranked list
 		return rankedList;
