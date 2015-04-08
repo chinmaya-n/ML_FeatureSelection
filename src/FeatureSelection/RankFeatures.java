@@ -241,8 +241,8 @@ public class RankFeatures {
 		}
 
 		// -- Debug
-//		System.out.println(rankedList);
-//		System.out.println(rankedListValues);
+		System.out.println(rankedList);
+		System.out.println(rankedListValues);
 
 		// return ranked list
 		return rankedList;
@@ -310,8 +310,8 @@ public class RankFeatures {
 		}
 
 		// -- Debug
-//		System.out.println(rankedList);
-//		System.out.println(rankedListValues);
+		System.out.println(rankedList);
+		System.out.println(rankedListValues);
 
 		// return ranked list
 		return rankedList;

@@ -15,18 +15,20 @@ public class CreateSVMInputFiles {
 	// File for Ranking
 	public static String rankingAlgorithm = "s2n";	// valid values: s2n; ttest; pcc
 	// If the feature vector to be normalized or not
-	public static boolean normalize = true;
+	public static boolean normalize = true;			// false for not normalizing
+	// type of data	- train or validation
+	public static String typeOfData = "valid"; 		// train ; valid
 
 	public static void main(String[] args) throws IOException {
 		
 		/** Get the training examples along with its features & Labels **/
 		// Get the features file and read it
-		String featuresFile = "./data/dexter_train.data";
+		String featuresFile = "./data/dexter_"+ typeOfData +".data";
 		// open the features file
 		BufferedReader brFeatures = new BufferedReader(new FileReader(featuresFile));
 
 		// Get the labels file
-		String labelsFile = "./data/dexter_train.labels";
+		String labelsFile = "./data/dexter_"+ typeOfData +".labels";
 		// open the labels file
 		BufferedReader brLabels = new BufferedReader(new FileReader(labelsFile));
 
@@ -105,7 +107,7 @@ public class CreateSVMInputFiles {
 			int noOfTopFeatures = topN[n];	// top n features
 			
 			// Create file to write
-			String fileName = "./data/"+ rankingAlgorithm + "_rank" + noOfTopFeatures + "_svm.tra";
+			String fileName = "./data/"+ rankingAlgorithm + "_rank" + noOfTopFeatures + "_svm." + typeOfData;
 			BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
 			
 			// iterate over no. of examples (i.e each line in the output file)
@@ -134,8 +136,6 @@ public class CreateSVMInputFiles {
 				// Add the features to the line
 				for(int i=0; i<featureVector.getRowDimension(); i++) {
 					double fValue = featureVector.get(i, 0);
-					if(eg==74 && n==20000)
-						System.out.println("@75");
 					if(fValue != 0) {
 						line = line + " " + (i+1) + ":" + fValue;
 					}
