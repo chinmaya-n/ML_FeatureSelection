@@ -96,8 +96,8 @@ public class RankFeatures {
 		System.out.println("Done!");
 
 		// Divide the sum of values with no of examples to get the mean
-		mPMean.times(1/(pEgCount+1));
-		mNMean.times(1/(nEgCount+1));
+		mPMean = mPMean.times(1/(double)(pEgCount+1));
+		mNMean = mNMean.times(1/(double)(nEgCount+1));
 
 		// Create the standard deviation matrices
 		Matrix mPStandardDeviation = new Matrix(1, mPMean.getColumnDimension(), 0);
@@ -105,14 +105,14 @@ public class RankFeatures {
 
 		// Compute SD
 		for(int i=0; i<mPEgs.getColumnDimension(); i++) {	// Iterate for each feature
-			int sumOfPDiffs = 0;
-			int sumOfNDiffs = 0;
+			double sumOfPDiffs = 0;
+			double sumOfNDiffs = 0;
 			for(int j=0; j<mPEgs.getRowDimension(); j++) {	// iterate for each example (on the same feature)
 				sumOfPDiffs += Math.pow(mPEgs.get(j, i) - mPMean.get(0, i), 2);
 				sumOfNDiffs += Math.pow(mNEgs.get(j, i) - mNMean.get(0, i), 2);
 			}
-			double sdP = Math.sqrt(sumOfPDiffs/mPEgs.getRowDimension());	// standard deviation for +ve egs feature
-			double sdN = Math.sqrt(sumOfNDiffs/mNEgs.getRowDimension());	// standard deviation for -ve egs feature
+			double sdP = Math.sqrt(sumOfPDiffs/(double)mPEgs.getRowDimension());	// standard deviation for +ve egs feature
+			double sdN = Math.sqrt(sumOfNDiffs/(double)mNEgs.getRowDimension());	// standard deviation for -ve egs feature
 			mPStandardDeviation.set(0, i, sdP);								// set sd
 			mNStandardDeviation.set(0, i, sdN);								// set sd
 		}
@@ -122,7 +122,7 @@ public class RankFeatures {
 		// Rank with T-Test
 		List<Integer> ranksTTest = RankWithTTest(mPMean, mNMean, mPStandardDeviation, mNStandardDeviation, pEgCount, nEgCount);
 		// Rank with Pearson Correlation Coefficient
-		List<Integer> ranksPCC = RankWithPCC(mPEgs, mNEgs, mPMean, mNMean);
+		List<Integer> ranksPCC = RankWithPCC(mPEgs, mNEgs);
 
 		// Write ranks to files
 		writeListToFile(ranksS2N, "./results/s2n.ranks");
@@ -183,7 +183,7 @@ public class RankFeatures {
 			featureIdList.remove(maxValuePosition);
 		}
 
-		// -- Debug
+//		 -- Debug
 //		System.out.println(rankedList);
 //		System.out.println(rankedListValues);
 
@@ -214,8 +214,8 @@ public class RankFeatures {
 		for(int i=0; i<mPMean.getColumnDimension(); i++) {
 			// compute numerator & denominator
 			double numerator = mPMean.get(0, i) - mNMean.get(0, i);
-			double denominator = Math.sqrt(Math.pow(mPSD.get(0, i), 2)/pEgCount +
-					Math.pow(mNSD.get(0, i), 2)/nEgCount);
+			double denominator = Math.sqrt(Math.pow(mPSD.get(0, i), 2)/(double)pEgCount +
+					Math.pow(mNSD.get(0, i), 2)/(double)nEgCount);
 			if(denominator != 0) {
 				valuesList.add(numerator/denominator);
 				featureIdList.add(i);
@@ -249,12 +249,23 @@ public class RankFeatures {
 	}
 
 
-	public static List<Integer> RankWithPCC(Matrix mPEgs, Matrix mNEgs, Matrix mPMean, Matrix mNMean) {	// PCC = Pearson correlation coefficient
+	public static List<Integer> RankWithPCC(Matrix mPEgs, Matrix mNEgs) {	// PCC = Pearson correlation coefficient
 		// Feature Number & corresponding values
 		List<Double> valuesList = new ArrayList<Double>();
 		List<Integer> featureIdList = new ArrayList<Integer>();
 		List<Integer> rankedList = new ArrayList<Integer>();
 		List<Double> rankedListValues = new ArrayList<Double>();
+		
+		// Calculate Mean both classes combined for each feature
+		Matrix mMean = new Matrix(1, mPEgs.getColumnDimension(), 0); 
+		for(int i=0; i<mPEgs.getColumnDimension(); i++) {
+			double sumOfAll = 0;
+			for(int j=0; j < mPEgs.getRowDimension(); j++) {
+				sumOfAll += (mPEgs.get(j, i) + mNEgs.get(j, i));
+			}
+			double avgOfFeature = sumOfAll/(double)(mPEgs.getRowDimension()*2);
+			mMean.set(0, i, avgOfFeature);
+		}
 
 		// According to the given dataset we have 150 training examples each for either classes.
 		// So, Y Mean will become 0. And as we have classified examples for each class, we know its labels.
@@ -265,8 +276,8 @@ public class RankFeatures {
 			double denominator = 0;
 			// Add up for each example
 			for(int j=0; j<mPEgs.getRowDimension(); j++) {
-				double pDeviation = (mPEgs.get(j, i) - mPMean.get(0,  i));
-				double nDeviation = (mNEgs.get(j, i) - mNMean.get(0,  i));
+				double pDeviation = (mPEgs.get(j, i) - mMean.get(0,  i));
+				double nDeviation = (mNEgs.get(j, i) - mMean.get(0,  i));
 				numerator += pDeviation*1 + nDeviation*-1;
 				denominator += Math.pow(pDeviation, 2) + Math.pow(nDeviation, 2);
 			}
@@ -285,7 +296,7 @@ public class RankFeatures {
 		}
 
 		// Sort the list
-		for(int i=0 ;i<mPMean.getColumnDimension(); i++) {
+		for(int i=0 ; i<mMean.getColumnDimension(); i++) {
 			// Get the max value position to find the max feature id
 			int maxValuePosition = valuesList.indexOf(Collections.max(valuesList));
 			// Fill the corresponding max feature Id for ranking
@@ -299,8 +310,8 @@ public class RankFeatures {
 		}
 
 		// -- Debug
-		System.out.println(rankedList);
-		System.out.println(rankedListValues);
+//		System.out.println(rankedList);
+//		System.out.println(rankedListValues);
 
 		// return ranked list
 		return rankedList;

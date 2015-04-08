@@ -10,10 +10,14 @@ import java.util.StringTokenizer;
 import weka.core.matrix.Matrix;
 
 public class CreateSVMInputFiles {
+	
+	/**	 Params	 **/
+	// File for Ranking
+	public static String rankingAlgorithm = "s2n";	// valid values: s2n; ttest; pcc
+	// If the feature vector to be normalized or not
+	public static boolean normalize = true;
 
 	public static void main(String[] args) throws IOException {
-		//	TODO: 1. Change feature id's in SVM input files ??
-		// 	TODO: 2. Change the PCC mean calculation
 		
 		/** Get the training examples along with its features & Labels **/
 		// Get the features file and read it
@@ -25,9 +29,6 @@ public class CreateSVMInputFiles {
 		String labelsFile = "./data/dexter_train.labels";
 		// open the labels file
 		BufferedReader brLabels = new BufferedReader(new FileReader(labelsFile));
-		
-		// File for Ranking
-		String rankingAlgorithm = "s2n";
 
 		// Create matrices
 		Matrix trainingEgs = new Matrix(20000, 300, 0);		// 300 egs with 20000 features each
@@ -112,12 +113,34 @@ public class CreateSVMInputFiles {
 				String line = "";	// line to add to the file
 				// Add the label for this example
 				line = line + trainingLabels.get(0, eg);
-				// Add the features & its values corresponding to noOfTopFeatures.
+				
+				// Create a matrix to store the feature vector & for normalization
+				Matrix featureVector = new Matrix(noOfTopFeatures, 1, 0);
+				// Add the features to the feature vector of a particular example
 				for(int f=0; f<noOfTopFeatures; f++) {
 					double featureId = featuresRanked.get(f, 0);
 					double featureValue = trainingEgs.get((int)featureId, eg);
-					line = line + " " + featureId + ":" + featureValue;
+					featureVector.set(f, 0, featureValue);
 				}
+				// Normalize the featureVector if needed
+				if(normalize) {
+					double norm = featureVector.normF();
+					if(norm!=0)
+						featureVector = featureVector.times(1/norm);
+					else
+						featureVector = new Matrix(featureVector.getRowDimension(), featureVector.getColumnDimension(), 0);
+				}
+				
+				// Add the features to the line
+				for(int i=0; i<featureVector.getRowDimension(); i++) {
+					double fValue = featureVector.get(i, 0);
+					if(eg==74 && n==20000)
+						System.out.println("@75");
+					if(fValue != 0) {
+						line = line + " " + (i+1) + ":" + fValue;
+					}
+				}
+				
 				// end the line
 				line = line + "\n";
 				// write this line to the file
@@ -130,5 +153,4 @@ public class CreateSVMInputFiles {
 			System.out.println("Wrote file: "+fileName);
 		}
 	}
-
 }
