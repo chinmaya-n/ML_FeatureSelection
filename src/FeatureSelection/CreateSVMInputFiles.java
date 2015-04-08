@@ -12,6 +12,8 @@ import weka.core.matrix.Matrix;
 public class CreateSVMInputFiles {
 
 	public static void main(String[] args) throws IOException {
+		//	TODO: 1. Change feature id's in SVM input files ??
+		// 	TODO: 2. Change the PCC mean calculation
 		
 		/** Get the training examples along with its features & Labels **/
 		// Get the features file and read it
