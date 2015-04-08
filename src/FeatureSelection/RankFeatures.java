@@ -217,7 +217,7 @@ public class RankFeatures {
 			double denominator = Math.sqrt(Math.pow(mPSD.get(0, i), 2)/(double)pEgCount +
 					Math.pow(mNSD.get(0, i), 2)/(double)nEgCount);
 			if(denominator != 0) {
-				valuesList.add(numerator/denominator);
+				valuesList.add(Math.abs(numerator)/denominator);		// Take Absolute value for rank making easy 
 				featureIdList.add(i);
 			}
 			else {
@@ -286,7 +286,7 @@ public class RankFeatures {
 
 			// Fill the values in the values list
 			if(denominator != 0) {
-				valuesList.add(numerator/denominator);
+				valuesList.add(Math.abs(numerator)/denominator);
 				featureIdList.add(i);
 			}
 			else {
