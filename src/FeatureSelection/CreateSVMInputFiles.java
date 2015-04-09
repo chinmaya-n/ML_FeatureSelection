@@ -17,7 +17,7 @@ public class CreateSVMInputFiles {
 	// If the feature vector to be normalized or not
 	public static boolean normalize = true;			// false for not normalizing
 	// type of data	- train or validation
-	public static String typeOfData = "valid"; 		// train ; valid
+	public static String typeOfData = "train"; 		// train ; valid
 
 	public static void main(String[] args) throws IOException {
 		
@@ -68,7 +68,7 @@ public class CreateSVMInputFiles {
 				colanTokenizer = new StringTokenizer(fToken, ":");
 				// feature & value
 				int featureNo = Integer.parseInt(colanTokenizer.nextToken())-1;	// feature value range from 0 to 19999 in array
-				int featureValue = Integer.parseInt(colanTokenizer.nextToken());
+				double featureValue = Double.parseDouble(colanTokenizer.nextToken());
 				// fill it in matrix
 				trainingEgs.set(featureNo, egCount, featureValue);
 			}
@@ -80,6 +80,8 @@ public class CreateSVMInputFiles {
 			egCount++;
 		}
 		System.out.println("Done reading examples: " + egCount);
+		// test
+		// saveMatrixToFile(trainingEgs, "./data/inputdata.matrix");
 		// close the buffers
 		brFeatures.close();
 		brLabels.close();
@@ -107,7 +109,7 @@ public class CreateSVMInputFiles {
 			int noOfTopFeatures = topN[n];	// top n features
 			
 			// Create file to write
-			String fileName = "./data/"+ rankingAlgorithm + "_rank" + noOfTopFeatures + "_svm." + typeOfData;
+			String fileName = "./data/"+ rankingAlgorithm + "_rank" + noOfTopFeatures + "_Norm" + normalize + "_svm." + typeOfData;
 			BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
 			
 			// iterate over no. of examples (i.e each line in the output file)
@@ -127,6 +129,7 @@ public class CreateSVMInputFiles {
 				// Normalize the featureVector if needed
 				if(normalize) {
 					double norm = featureVector.normF();
+//					saveMatrixToFile(featureVector, "./results/featureVector.matrix");
 					if(norm!=0)
 						featureVector = featureVector.times(1/norm);
 					else
@@ -136,7 +139,7 @@ public class CreateSVMInputFiles {
 				// Add the features to the line
 				for(int i=0; i<featureVector.getRowDimension(); i++) {
 					double fValue = featureVector.get(i, 0);
-					if(fValue != 0) {
+					 if(fValue != 0) {
 						line = line + " " + (i+1) + ":" + fValue;
 					}
 				}
@@ -152,5 +155,20 @@ public class CreateSVMInputFiles {
 			// Wrote to file
 			System.out.println("Wrote file: "+fileName);
 		}
+	}
+	
+	// Print matrix
+	public static void saveMatrixToFile(Matrix m, String fileName) throws IOException {
+		// open file
+		BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
+		for(int row=0; row<m.getRowDimension(); row++) {
+			for(int col=0; col<m.getColumnDimension(); col++) {
+				bw.write(m.get(row, col)+" ");
+			}
+			bw.write("\n");
+		}
+		
+		// close buffer
+		bw.close();
 	}
 }

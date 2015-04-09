@@ -241,8 +241,8 @@ public class RankFeatures {
 		}
 
 		// -- Debug
-		System.out.println(rankedList);
-		System.out.println(rankedListValues);
+//		System.out.println(rankedList);
+//		System.out.println(rankedListValues);
 
 		// return ranked list
 		return rankedList;
@@ -266,6 +266,14 @@ public class RankFeatures {
 			double avgOfFeature = sumOfAll/(double)(mPEgs.getRowDimension()*2);
 			mMean.set(0, i, avgOfFeature);
 		}
+		
+		// Check how many features are completely zero from all the examples
+//		int zeroCount=0;
+//		for(int f=0; f<mMean.getColumnDimension(); f++) {
+//			if(mMean.get(0, f) == 0)
+//				zeroCount++;
+//		}
+//		System.out.println("total zero features: "+zeroCount);
 
 		// According to the given dataset we have 150 training examples each for either classes.
 		// So, Y Mean will become 0. And as we have classified examples for each class, we know its labels.
@@ -310,8 +318,8 @@ public class RankFeatures {
 		}
 
 		// -- Debug
-		System.out.println(rankedList);
-		System.out.println(rankedListValues);
+//		System.out.println(rankedList);
+//		System.out.println(rankedListValues);
 
 		// return ranked list
 		return rankedList;
