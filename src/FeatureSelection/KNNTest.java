@@ -13,11 +13,11 @@ public class KNNTest {
 
 	/**	 Params	 **/
 	// File for Ranking
-	public static String rankingAlgorithm = "pcc";	// valid values: s2n; ttest; pcc
+	public static String rankingAlgorithm = "s2n";	// valid values: s2n; ttest; pcc
 	// If the feature vector to be normalized or not
-	public static boolean normalize = true;			// false for not normalizing
+	public static boolean normalize = false;			// false for not normalizing
 	// type of data	- train or validation
-	public static String typeOfData = "train"; 		// train ; valid
+//	public static String typeOfData = "train"; 		// train ; valid
 	// k value - in k-NN
 	public static int k = 10; 						// 1 - 5 - 10
 
@@ -28,9 +28,13 @@ public class KNNTest {
 		int topN[] = {1, 5, 10, 20, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000,
 				8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000, 20000};
 
+		String nValues = "";
+		String accuracies = "";
+		
 		for(int i=0; i<topN.length; i++) {
 			// current topN value
 			int noOfTopFeatures = topN[i];
+			System.out.println("Working on: "+noOfTopFeatures);
 			
 			/** Load the instances into classifier **/
 			// Open Training File
@@ -65,7 +69,15 @@ public class KNNTest {
 				if(prediction == original)
 					++totalCorrectPredictions;
 			}
-			System.out.println(topN[i]+"- Accuracy: "+(100*totalCorrectPredictions/(double)totalTestInstancesCount)+ " " + totalCorrectPredictions + "/" + totalTestInstancesCount);
+			
+			// Appened to strings:
+			nValues = nValues + topN[i] + ", ";
+			accuracies = accuracies + 100*totalCorrectPredictions/(double)totalTestInstancesCount + ", ";
+//			System.out.println(topN[i]+"- Accuracy: " + totalCorrectPredictions + "/" + totalTestInstancesCount);
 		}
+		
+		// Print values
+		System.out.println(nValues);
+		System.out.println(accuracies);
 	}
 }

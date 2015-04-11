@@ -2,6 +2,8 @@
 @attribute feature1 NUMERIC
 @attribute class {1.0, -1.0}
 
+@data
+
 1.0,1.0
 1.0,1.0
 0.9999999999999999,-1.0

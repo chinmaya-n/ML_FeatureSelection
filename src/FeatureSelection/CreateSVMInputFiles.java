@@ -5,22 +5,29 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import weka.core.matrix.Matrix;
 
 public class CreateSVMInputFiles {
-	
+
 	/**	 Params	 **/
 	// File for Ranking
-	public static String rankingAlgorithm = "s2n";	// valid values: s2n; ttest; pcc
+	public static String rankingAlgorithm = "pcc";	// valid values: s2n; ttest; pcc
 	// If the feature vector to be normalized or not
-	public static boolean normalize = true;			// false for not normalizing
+	public static boolean normalize = false;			// false for not normalizing
 	// type of data	- train or validation
-	public static String typeOfData = "train"; 		// train ; valid
+	public static String typeOfData = "valid"; 		// train ; valid
 
 	public static void main(String[] args) throws IOException {
-		
+
 		/** Get the training examples along with its features & Labels **/
 		// Get the features file and read it
 		String featuresFile = "./data/dexter_"+ typeOfData +".data";
@@ -56,10 +63,10 @@ public class CreateSVMInputFiles {
 				fileNotEnded = false;
 				break;
 			}
-			
+
 			// tokenize the line
 			spaceTokenizer = new StringTokenizer(fLine, " ");
-			
+
 			// Iterate over each feature and store the values
 			while(spaceTokenizer.hasMoreTokens()) {
 				// Tokenizing using space
@@ -72,10 +79,10 @@ public class CreateSVMInputFiles {
 				// fill it in matrix
 				trainingEgs.set(featureNo, egCount, featureValue);
 			}
-			
+
 			// Iterate each line and save into labels matrix
 			trainingLabels.set(0, egCount, Double.parseDouble(lLine));
-			
+
 			// increment the example count
 			egCount++;
 		}
@@ -103,60 +110,45 @@ public class CreateSVMInputFiles {
 				8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000, 20000};
 
 		/** Change code below this portion to convert to some other file format like arff etc**/
-		// Iterate over no of ranked features to keep in the file
-		// & Generate files
-		for(int n=0; n<topN.length; n++) {
-			int noOfTopFeatures = topN[n];	// top n features
+		// Create Batches of threads
+		int noOfBatches = 7;
+		for(int b=0; b<noOfBatches; b++) {
+			int threadsPerBatch = 5;
+			if(b==6)
+				threadsPerBatch = 4;
 			
-			// Create file to write
-			String fileName = "./data/"+ rankingAlgorithm + "_rank" + noOfTopFeatures + "_Norm" + normalize + "_svm." + typeOfData;
-			BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
+			// initialize the thread service
+			final ExecutorService service = Executors.newFixedThreadPool(threadsPerBatch);
+			// List to store the return values for each thread
+			List<Future<int[]>> threadList = new ArrayList<Future<int[]>>();
 			
-			// iterate over no. of examples (i.e each line in the output file)
-			for(int eg=0; eg<trainingEgs.getColumnDimension(); eg++) {
-				String line = "";	// line to add to the file
-				// Add the label for this example
-				line = line + trainingLabels.get(0, eg);
-				
-				// Create a matrix to store the feature vector & for normalization
-				Matrix featureVector = new Matrix(noOfTopFeatures, 1, 0);
-				// Add the features to the feature vector of a particular example
-				for(int f=0; f<noOfTopFeatures; f++) {
-					double featureId = featuresRanked.get(f, 0);
-					double featureValue = trainingEgs.get((int)featureId, eg);
-					featureVector.set(f, 0, featureValue);
-				}
-				// Normalize the featureVector if needed
-				if(normalize) {
-					double norm = featureVector.normF();
-//					saveMatrixToFile(featureVector, "./results/featureVector.matrix");
-					if(norm!=0)
-						featureVector = featureVector.times(1/norm);
-					else
-						featureVector = new Matrix(featureVector.getRowDimension(), featureVector.getColumnDimension(), 0);
-				}
-				
-				// Add the features to the line
-				for(int i=0; i<featureVector.getRowDimension(); i++) {
-					double fValue = featureVector.get(i, 0);
-					 if(fValue != 0) {
-						line = line + " " + (i+1) + ":" + fValue;
-					}
-				}
-				
-				// end the line
-				line = line + "\n";
-				// write this line to the file
-				bw.write(line);
+			// Start the threads
+			for(int n=0; n<threadsPerBatch; n++) {
+				threadList.add(service.submit(new CreateThread(topN[b*5+n], trainingEgs, trainingLabels, featuresRanked,
+						rankingAlgorithm, normalize, typeOfData)));
 			}
 			
-			// close buffers
-			bw.close();
-			// Wrote to file
-			System.out.println("Wrote file: "+fileName);
+//			// Dummy Wait for the threads to run completely
+//			// total aggregate accuracy counts
+//			int[] returnValues = {0, 0};
+//			// Aggregate the accuracies
+//			try{
+//				for(int n=0; n<threadsPerBatch; n++) {
+//					returnValues[0] += threadList.get(n).get()[0];
+//					returnValues[1] += threadList.get(n).get()[1];
+//				}
+//			} catch(final InterruptedException ex) {
+//				ex.printStackTrace();
+//			} catch(final ExecutionException ex) {
+//				ex.printStackTrace();
+//			}
+//			// Dummy Wait --- Not needed! Just to used for testing
+			
+			// shutdown service
+			service.shutdown();
 		}
 	}
-	
+
 	// Print matrix
 	public static void saveMatrixToFile(Matrix m, String fileName) throws IOException {
 		// open file
@@ -167,8 +159,92 @@ public class CreateSVMInputFiles {
 			}
 			bw.write("\n");
 		}
-		
+
 		// close buffer
 		bw.close();
+	}
+}
+
+// Thread Creation
+class CreateThread implements Callable<int[]> {
+	
+	// member variables
+	int N;
+	Matrix trainingEgs;
+	Matrix trainingLabels;
+	Matrix featuresRanked;
+	String rankingAlgorithm;
+	boolean normalize; 
+	String typeOfData;
+	
+	// constructor
+	public CreateThread(int N, Matrix trainingEgs, Matrix trainingLabels, Matrix featuresRanked,
+			String rankingAlgorithm, boolean normalize, String typeOfData) {
+		this.N = N;
+		this.trainingEgs = trainingEgs;
+		this.trainingLabels = trainingLabels;
+		this.featuresRanked = featuresRanked;
+		this.rankingAlgorithm = rankingAlgorithm;
+		this.normalize = normalize;
+		this.typeOfData = typeOfData;
+	}
+	
+	// init function
+	public int[] call() throws IOException {
+		/** Change code below this portion to convert to some other file format like arff etc**/
+		// Iterate over no of ranked features to keep in the file
+		// & Generate files
+		int noOfTopFeatures = N;	// top n features
+
+		// Create file to write
+		String fileName = "./data/"+ rankingAlgorithm + "_rank" + noOfTopFeatures + "_Norm" + normalize + "_svm." + typeOfData;
+		BufferedWriter bw = new BufferedWriter(new FileWriter(fileName));
+
+		// iterate over no. of examples (i.e each line in the output file)
+		for(int eg=0; eg<trainingEgs.getColumnDimension(); eg++) {
+			String line = "";	// line to add to the file
+			// Add the label for this example
+			line = line + trainingLabels.get(0, eg);
+
+			// Create a matrix to store the feature vector & for normalization
+			Matrix featureVector = new Matrix(noOfTopFeatures, 1, 0);
+			// Add the features to the feature vector of a particular example
+			for(int f=0; f<noOfTopFeatures; f++) {
+				double featureId = featuresRanked.get(f, 0);
+				double featureValue = trainingEgs.get((int)featureId, eg);
+				featureVector.set(f, 0, featureValue);
+			}
+			// Normalize the featureVector if needed
+			if(normalize) {
+				double norm = featureVector.normF();
+				//					saveMatrixToFile(featureVector, "./results/featureVector.matrix");
+				if(norm!=0)
+					featureVector = featureVector.times(1/norm);
+				else
+					featureVector = new Matrix(featureVector.getRowDimension(), featureVector.getColumnDimension(), 0);
+			}
+
+			// Add the features to the line
+			for(int i=0; i<featureVector.getRowDimension(); i++) {
+				double fValue = featureVector.get(i, 0);
+				if(fValue != 0) {
+					line = line + " " + (i+1) + ":" + fValue;
+				}
+			}
+
+			// end the line
+			line = line + "\n";
+			// write this line to the file
+			bw.write(line);
+		}
+
+		// close buffers
+		bw.close();
+		// Wrote to file
+		System.out.println("Wrote file: "+fileName);
+		
+		// return - dummy return
+		int ret[] = {0, 1};
+		return ret;
 	}
 }

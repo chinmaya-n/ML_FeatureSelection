@@ -118,15 +118,15 @@ public class RankFeatures {
 		}
 
 		// Rank them using StoN Ratio
-		List<Integer> ranksS2N =  RankWithS2N(mPMean, mNMean, mPStandardDeviation, mNStandardDeviation);
+//		List<Integer> ranksS2N = RankWithS2N(mPMean, mNMean, mPStandardDeviation, mNStandardDeviation);
 		// Rank with T-Test
-		List<Integer> ranksTTest = RankWithTTest(mPMean, mNMean, mPStandardDeviation, mNStandardDeviation, pEgCount, nEgCount);
+//		List<Integer> ranksTTest = RankWithTTest(mPMean, mNMean, mPStandardDeviation, mNStandardDeviation, pEgCount, nEgCount);
 		// Rank with Pearson Correlation Coefficient
 		List<Integer> ranksPCC = RankWithPCC(mPEgs, mNEgs);
 
 		// Write ranks to files
-		writeListToFile(ranksS2N, "./results/s2n.ranks");
-		writeListToFile(ranksTTest, "./results/ttest.ranks");
+//		writeListToFile(ranksS2N, "./results/s2n.ranks");
+//		writeListToFile(ranksTTest, "./results/ttest.ranks");
 		writeListToFile(ranksPCC, "./results/pcc.ranks");
 		
 		// Close the buffer reader
@@ -143,7 +143,7 @@ public class RankFeatures {
 	 * @return
 	 */
 	public static List<Integer> RankWithS2N(Matrix mPMean, Matrix mNMean, Matrix mPSD, Matrix mNSD) {
-
+		
 		// Feature Number & corresponding values
 		List<Double> valuesList = new ArrayList<Double>();
 		List<Integer> featureIdList = new ArrayList<Integer>();
@@ -175,7 +175,7 @@ public class RankFeatures {
 			int maxValuePosition = valuesList.indexOf(Collections.max(valuesList));
 			// Fill the corresponding max feature Id for ranking
 			rankedList.add(featureIdList.get(maxValuePosition));
-			// Fill the max value as well correspoding to its id
+			// Fill the max value as well corresponding to its id
 			rankedListValues.add(valuesList.get(maxValuePosition));
 
 			// Remove the max feature value & id to find the next max elements
@@ -319,7 +319,7 @@ public class RankFeatures {
 
 		// -- Debug
 //		System.out.println(rankedList);
-//		System.out.println(rankedListValues);
+		System.out.println(rankedListValues);
 
 		// return ranked list
 		return rankedList;
