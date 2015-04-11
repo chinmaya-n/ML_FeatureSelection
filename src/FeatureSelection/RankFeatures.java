@@ -319,7 +319,8 @@ public class RankFeatures {
 
 		// -- Debug
 //		System.out.println(rankedList);
-		System.out.println(rankedListValues);
+//		System.out.println(rankedListValues);
+//		System.out.println(rankedListValues.get(rankedList.indexOf(12876)));
 
 		// return ranked list
 		return rankedList;
