@@ -128,21 +128,21 @@ public class CreateSVMInputFiles {
 						rankingAlgorithm, normalize, typeOfData)));
 			}
 			
-//			// Dummy Wait for the threads to run completely
-//			// total aggregate accuracy counts
-//			int[] returnValues = {0, 0};
-//			// Aggregate the accuracies
-//			try{
-//				for(int n=0; n<threadsPerBatch; n++) {
-//					returnValues[0] += threadList.get(n).get()[0];
-//					returnValues[1] += threadList.get(n).get()[1];
-//				}
-//			} catch(final InterruptedException ex) {
-//				ex.printStackTrace();
-//			} catch(final ExecutionException ex) {
-//				ex.printStackTrace();
-//			}
-//			// Dummy Wait --- Not needed! Just to used for testing
+			// Dummy Wait for the threads to run completely
+			// total aggregate accuracy counts
+			int[] returnValues = {0, 0};
+			// Aggregate the accuracies
+			try{
+				for(int n=0; n<threadsPerBatch; n++) {
+					returnValues[0] += threadList.get(n).get()[0];
+					returnValues[1] += threadList.get(n).get()[1];
+				}
+			} catch(final InterruptedException ex) {
+				ex.printStackTrace();
+			} catch(final ExecutionException ex) {
+				ex.printStackTrace();
+			}
+			// Dummy Wait --- Not needed! Just to used for testing
 			
 			// shutdown service
 			service.shutdown();

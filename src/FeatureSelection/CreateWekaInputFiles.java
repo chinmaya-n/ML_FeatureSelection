@@ -22,9 +22,9 @@ public class CreateWekaInputFiles {
 	// File for Ranking
 	public static String rankingAlgorithm = "s2n";	// valid values: s2n; ttest; pcc
 	// If the feature vector to be normalized or not
-	public static boolean normalize = false;			// false for not normalizing
+	public static boolean normalize = true;			// false for not normalizing
 	// type of data	- train or validation
-	public static String typeOfData = "valid"; 		// train ; valid
+	public static String typeOfData = "train"; 		// train ; valid
 
 	public static void main(String[] args) throws IOException {
 
@@ -124,23 +124,25 @@ public class CreateWekaInputFiles {
 			for(int n=0; n<threadsPerBatch; n++) {
 				threadList.add(service.submit(new CreateThreadW(topN[b*5+n], trainingEgs, trainingLabels, featuresRanked,
 						rankingAlgorithm, normalize, typeOfData)));
+				// -- debug message
+				System.out.println("Thread: "+b+":"+n);
 			}
-
-//			// Dummy Wait for the threads to run completely ( Not needed!)
-//			// total aggregate accuracy counts
-//			int[] returnValues = {0, 0};
-//			// Aggregate the accuracies
-//			try{
-//				for(int n=0; n<threadsPerBatch; n++) {
-//					returnValues[0] += threadList.get(n).get()[0];
-//					returnValues[1] += threadList.get(n).get()[1];
-//				}
-//			} catch(final InterruptedException ex) {
-//				ex.printStackTrace();
-//			} catch(final ExecutionException ex) {
-//				ex.printStackTrace();
-//			}
-//			// Dummy Wait --- Not needed! Just to used for testing
+			
+			// Dummy Wait for the threads to run completely ( Not needed!)
+			// total aggregate accuracy counts
+			int[] returnValues = {0, 0};
+			// Aggregate the accuracies
+			try{
+				for(int n=0; n<threadsPerBatch; n++) {
+					returnValues[0] += threadList.get(n).get()[0];
+					returnValues[1] += threadList.get(n).get()[1];
+				}
+			} catch(final InterruptedException ex) {
+				ex.printStackTrace();
+			} catch(final ExecutionException ex) {
+				ex.printStackTrace();
+			}
+			// Dummy Wait --- Not needed! Just to used for testing
 
 			// shutdown service
 			service.shutdown();
